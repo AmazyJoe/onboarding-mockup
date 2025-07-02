@@ -209,121 +209,108 @@ export default function OnboardingWizardPage() {
     })
   }
 
-  const handleNext = async () => {
-    if (currentStep < steps.length) {
-      // If we're moving from step 1 (Contact Person), create account
-      if (currentStep === 1 && !completedSteps.has(1)) {
-        setIsSubmitting(true);
-        try {
-          const contactData = formData[1] as ContactPersonData;
-          console.log("Creating account with data:", contactData);
-  
-          // Store the full account response
-          const response = await apiClient.createAccount(contactData);
-          console.log("Account created successfully:", response);
-          // Store the full account response
-          setAccountData(response);
-          setCompletedSteps((prev) => new Set([...prev, 1]));
-        } catch (error) {
-          console.error("Failed to create account:", error);
-          alert("Failed to create account. Please try again.");
-          setIsSubmitting(false);
-          return;
-        }
-        setIsSubmitting(false);
-      }
-  
-      // If we're moving from step 2 (Company Details), create company
-      if (currentStep === 2 && !completedSteps.has(2)) {
-        setIsSubmitting(true);
-        try {
-          if (!accountData) {
-            throw new Error("Account data not found. Please complete step 1 first.");
-          }
-          // Map the company data to match your API format - using full_name instead of username
-          const baseCompanyData = formData[2] as CompanyDetailsData;
-          const contactPersonData = formData[1] as ContactPersonData;
-          const companyData = {
-            ...baseCompanyData,
-            account: accountData.username || accountData.id, // Use username as the account reference
-            contact_person: contactPersonData.full_name, // Use full_name instead of username
-            state: "PENDING", // Default state
-          };
-  
-          console.log("Creating company with API format (using full_name):", companyData);
-          console.log("Sending contact_person as:", contactPersonData.full_name);
-          console.log("Sending account as:", accountData.username);
-  
-          const response = await apiClient.createCompany(companyData);
-          console.log("Company created successfully:", response);
-  
-          setCompanyId(response.id);
-          setCompletedSteps((prev) => new Set([...prev, 2]));
-        } catch (error) {
-          console.error("Failed to create company:", error);
-          alert(`Failed to create company: ${error instanceof Error ? error.message : "Unknown error"}`);
-          setIsSubmitting(false);
-          return;
-        }
-        setIsSubmitting(false);
-      }
-  
-      // If we're moving from step 3 (Director Details), create directors
-      if (currentStep === 3 && !completedSteps.has(3)) {
-        setIsSubmitting(true);
-        try {
-          const directorsData = formData[3] as DirectorDetailsData;
-  
-          for (const director of directorsData.directors) {
-            const directorPayload = {
-              ...director,
-              company: companyId, // Ensure this matches the expected field name in your backend
-              state: "PENDING",
-            };
-            console.log("Creating director with data:", directorPayload);
-  
-            const response = await apiClient.createDirector(directorPayload);
-            console.log("Director created successfully:", response);
-          }
-  
-          setCompletedSteps((prev) => new Set([...prev, 3]));
-        } catch (error) {
-          console.error("Failed to create directors:", error);
-          alert("Failed to create directors. Please try again.");
-          setIsSubmitting(false);
-          return;
-        }
-        setIsSubmitting(false);
-      }
-  
-      setCurrentStep(currentStep + 1);
-    } else {
-      // Final submission - create AML compliance
+  // app/onboarding/page.tsx
+const handleNext = async () => {
+  if (currentStep < steps.length) {
+    // If we're moving from step 1 (Contact Person), create account
+    if (currentStep === 1 && !completedSteps.has(1)) {
       setIsSubmitting(true);
       try {
-        // Create AML compliance
-        const amlData = {
-          ...(formData[4] as AMLComplianceData),
-          company_id: companyId,
-          state: "PENDING",
-        };
-        await apiClient.createAMLCompliance(amlData);
-  
-        console.log("Onboarding completed successfully!");
-  
-        // Clear persisted data since onboarding is complete
-        clearPersistedData();
-  
-        // Redirect to document upload
-        window.location.href = "/onboarding/documents";
+        const contactData = formData[1] as ContactPersonData;
+        console.log("Creating account with data:", contactData);
+        // Store the full account response
+        const response = await apiClient.createAccount(contactData);
+        console.log("Account created successfully:", response);
+        // Store the full account response
+        setAccountData(response);
+        setCompletedSteps((prev) => new Set([...prev, 1]));
       } catch (error) {
-        console.error("Final submission failed:", error);
-        alert("Submission failed. Please try again.");
-      } finally {
+        console.error("Failed to create account:", error);
+        alert("Failed to create account. Please try again.");
         setIsSubmitting(false);
+        return;
       }
+      setIsSubmitting(false);
     }
-  };
+    // If we're moving from step 2 (Company Details), create company
+    if (currentStep === 2 && !completedSteps.has(2)) {
+      setIsSubmitting(true);
+      try {
+        if (!accountData) {
+          throw new Error("Account data not found. Please complete step 1 first.");
+        }
+        // Map the company data to match your API format - using full_name instead of username
+        const baseCompanyData = formData[2] as CompanyDetailsData;
+        const contactPersonData = formData[1] as ContactPersonData;
+        const companyData = {
+          ...baseCompanyData,
+          contact_person: contactPersonData.full_name, // Use full_name instead of username
+          state: "PENDING", // Default state
+        };
+        console.log("Creating company with API format (using full_name):", companyData);
+        console.log("Sending contact_person as:", contactPersonData.full_name);
+        const response = await apiClient.createCompany(companyData);
+        console.log("Company created successfully:", response);
+        setCompanyId(response.id);
+        setCompletedSteps((prev) => new Set([...prev, 2]));
+      } catch (error) {
+        console.error("Failed to create company:", error);
+        alert(`Failed to create company: ${error instanceof Error ? error.message : "Unknown error"}`);
+        setIsSubmitting(false);
+        return;
+      }
+      setIsSubmitting(false);
+    }
+    // If we're moving from step 3 (Director Details), create directors
+    if (currentStep === 3 && !completedSteps.has(3)) {
+      setIsSubmitting(true);
+      try {
+        const directorsData = formData[3] as DirectorDetailsData;
+        for (const director of directorsData.directors) {
+          const directorPayload = {
+            ...director,
+            company: companyId, // Ensure this matches the expected field name in your backend
+            state: "PENDING",
+          };
+          console.log("Creating director with data:", directorPayload);
+          const response = await apiClient.createDirector(directorPayload);
+          console.log("Director created successfully:", response);
+        }
+        setCompletedSteps((prev) => new Set([...prev, 3]));
+      } catch (error) {
+        console.error("Failed to create directors:", error);
+        alert("Failed to create directors. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+      setIsSubmitting(false);
+    }
+    setCurrentStep(currentStep + 1);
+  } else {
+    // Final submission - create AML compliance
+    setIsSubmitting(true);
+    try {
+      // Create AML compliance
+      const amlData = {
+        ...(formData[4] as AMLComplianceData),
+        company_id: companyId,
+        state: "PENDING",
+      };
+      await apiClient.createAMLCompliance(amlData);
+      console.log("Onboarding completed successfully!");
+      // Clear persisted data since onboarding is complete
+      clearPersistedData();
+      // Redirect to document upload
+      window.location.href = "/onboarding/documents";
+    } catch (error) {
+      console.error("Final submission failed:", error);
+      alert("Submission failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+};
+
   
 
   const handlePrevious = () => {
@@ -448,7 +435,6 @@ export default function OnboardingWizardPage() {
                       industryCategories={industryCategories}
                       legalEntityForms={legalEntityForms}
                       contactPersonName={(formData[1] as ContactPersonData)?.full_name || ""}
-                      accountUsername={accountData?.username || accountData?.id || ""}
                     />
                   )}
                   {currentStep === 3 && (

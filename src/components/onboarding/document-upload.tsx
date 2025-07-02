@@ -1,50 +1,49 @@
-"use client"
-
-import type React from "react"
-
-import { useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Upload, File, X, Check } from "lucide-react"
+// src/components/onboarding/document-upload.tsx
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Upload, File, X, Check } from "lucide-react";
+import { apiClient } from "@/lib/api";
 
 interface DocumentUploadProps {
-  documentId: string
-  onUpload: (file: File) => void
-  currentFile?: File
-  status?: string
+  documentId: string;
+  companyLegalName: string;
+  onUpload: (file: File) => void;
+  currentFile?: File;
+  status?: string;
 }
 
-export function DocumentUpload({ documentId, onUpload, currentFile, status }: DocumentUploadProps) {
-  const [dragActive, setDragActive] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+export function DocumentUpload({ documentId, companyLegalName, onUpload, currentFile, status }: DocumentUploadProps) {
+  const [dragActive, setDragActive] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
+      setDragActive(true);
     } else if (e.type === "dragleave") {
-      setDragActive(false)
+      setDragActive(false);
     }
-  }
+  };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0])
+      handleFile(e.dataTransfer.files[0]);
     }
-  }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault()
+    e.preventDefault();
     if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0])
+      handleFile(e.target.files[0]);
     }
-  }
+  };
 
   const handleFile = async (file: File) => {
     // Validate file type
@@ -54,69 +53,73 @@ export function DocumentUpload({ documentId, onUpload, currentFile, status }: Do
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "application/vnd.ms-excel",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ]
+    ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert("Please upload only PDF, DOC, DOCX, XLS, or XLSX files")
-      return
+      alert("Please upload only PDF, DOC, DOCX, XLS, or XLSX files");
+      return;
     }
 
     // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      alert("File size must be less than 10MB")
-      return
+      alert("File size must be less than 10MB");
+      return;
     }
 
-    setUploading(true)
+    setUploading(true);
 
     try {
-      // Simulate upload delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      onUpload(file)
+      const formData = new FormData();
+      formData.append("name", documentId);
+      formData.append("company", companyLegalName);
+      formData.append("file", file);
+
+      const response = await apiClient.uploadDocument(formData);
+      console.log("Upload successful:", response);
+      onUpload(file);
     } catch (error) {
-      console.error("Upload failed:", error)
-      alert("Upload failed. Please try again.")
+      console.error("Upload failed:", error);
+      alert("Upload failed. Please try again.");
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const openFileDialog = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const removeFile = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
-    // You might want to call a prop function here to remove the file
-  }
+  };
 
   const getStatusColor = () => {
     switch (status) {
       case "pending":
-        return "text-yellow-600"
+        return "text-yellow-600";
       case "in_review":
-        return "text-blue-600"
+        return "text-blue-600";
       case "complete":
-        return "text-green-600"
+        return "text-green-600";
       case "action_required":
-        return "text-red-600"
+        return "text-red-600";
       default:
-        return "text-gray-600"
+        return "text-gray-600";
     }
-  }
+  };
 
   const getStatusIcon = () => {
     switch (status) {
       case "complete":
-        return <Check className="w-4 h-4" />
+        return <Check className="w-4 h-4" />;
       case "pending":
-        return <Upload className="w-4 h-4" />
+        return <Upload className="w-4 h-4" />;
       default:
-        return <File className="w-4 h-4" />
+        return <File className="w-4 h-4" />;
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -175,5 +178,5 @@ export function DocumentUpload({ documentId, onUpload, currentFile, status }: Do
         </div>
       )}
     </div>
-  )
+  );
 }

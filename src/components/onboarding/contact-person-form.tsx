@@ -14,7 +14,6 @@ interface ContactPersonFormProps {
 export function ContactPersonForm({ data, onChange }: ContactPersonFormProps) {
   // Initialize form data state - note we're using full_name instead of separate first/last
   const [formData, setFormData] = useState<ContactPersonData>({
-    username: "",
     email: "",
     full_name: "", // Changed from first_name/last_name to full_name
     position: "",
@@ -61,17 +60,6 @@ export function ContactPersonForm({ data, onChange }: ContactPersonFormProps) {
           value={formData.email}
           onChange={(e) => handleChange("email", e.target.value)}
           placeholder="your.email@company.com"
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="username">Username *</Label>
-        <Input
-          id="username"
-          value={formData.username}
-          onChange={(e) => handleChange("username", e.target.value)}
-          placeholder="Enter your username"
           required
         />
       </div>

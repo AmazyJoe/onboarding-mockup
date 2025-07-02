@@ -7,7 +7,6 @@ export interface ApiResponse<T = any> {
 
 // Account creation (Step 1)
 export interface ContactPersonData {
-  username: string
   email: string
   full_name: string
   position: string
@@ -102,7 +101,6 @@ export interface State {
 // Admin data types
 export interface Account {
   id: string
-  username: string
   email: string
   first_name?: string
   last_name?: string
@@ -157,7 +155,6 @@ export interface OnboardingFormData {
 // API Response data
 export interface AccountResponse {
   id: string
-  username: string
   email: string
   full_name: string
   position: string
@@ -172,3 +169,4 @@ export interface CompanyResponse {
   contact_person: string // Updated to match new API format
   account?: string
 }
+

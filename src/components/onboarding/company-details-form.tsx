@@ -13,7 +13,6 @@ interface CompanyDetailsFormProps {
   onChange: (data: CompanyDetailsData) => void
   industryCategories?: IndustryCategory[]
   legalEntityForms?: LegalEntityForm[]
-  accountUsername: string // The username from the created account
   contactPersonName?: string // The full name from step 1
 }
 
@@ -22,7 +21,6 @@ export function CompanyDetailsForm({
   onChange,
   industryCategories = [],
   legalEntityForms = [],
-  accountUsername,
   contactPersonName = "",
 }: CompanyDetailsFormProps) {
   const [formData, setFormData] = useState<CompanyDetailsData>({
@@ -39,7 +37,7 @@ export function CompanyDetailsForm({
     legal_entity_form: "",
     website_url: "",
     regulatory_license_info: "",
-    contact_person: accountUsername, // This is the username that goes to the API
+    contact_person: contactPersonName, // This is the username that goes to the API
     account: contactPersonName, // This is the full name for display purposes
     ...data,
   })
@@ -49,8 +47,8 @@ export function CompanyDetailsForm({
     let hasChanged = false
     const updates: Partial<CompanyDetailsData> = {}
     
-    if (accountUsername && formData.contact_person !== accountUsername) {
-      updates.contact_person = accountUsername
+    if (contactPersonName && formData.contact_person !== contactPersonName) {
+      updates.contact_person = contactPersonName
       hasChanged = true
     }
     
@@ -62,7 +60,7 @@ export function CompanyDetailsForm({
     if (hasChanged) {
       setFormData(prev => ({ ...prev, ...updates }))
     }
-  }, [accountUsername, contactPersonName, formData.contact_person, formData.account])
+  }, [contactPersonName, formData.contact_person, formData.account])
 
   useEffect(() => {
     const hasChanged = JSON.stringify(formData) !== JSON.stringify(data)
@@ -78,10 +76,10 @@ export function CompanyDetailsForm({
   return (
     <div className="space-y-6">
       {/* Show which account and contact person this company will be linked to */}
-      {(accountUsername || contactPersonName) && (
+      {(contactPersonName) && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-blue-800 text-sm">
-            <strong>Contact Person (Username):</strong> This company will be linked to username "{accountUsername}"
+            <strong>Contact Person (Username):</strong> This company will be linked to  "{contactPersonName}"
             {contactPersonName && (
               <>
                 <br />

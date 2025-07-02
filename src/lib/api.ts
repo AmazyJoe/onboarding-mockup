@@ -245,6 +245,57 @@ class ApiClient {
       body: JSON.stringify(data),
     })
   }
+
+  async uploadDocument(formData: FormData): Promise<any> {
+    const endpoint = "/core/documents/create/";
+    const url = `${this.baseURL}${endpoint}`;
+
+    const config: RequestInit = {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    };
+
+    try {
+      const response = await fetch(url, config);
+
+      if (!response.ok) {
+        const data = await response.json();
+        console.error(`API Error: ${response.status}`, data);
+        throw new Error(data.message || data.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`API Response: ${url}`, data);
+      return data;
+    } catch (error) {
+      console.error("API request failed:", error);
+      throw error;
+    }
+  }
+
+  async getDocuments(): Promise<Document[]> {
+    return this.request<Document[]>("/core/documents/", {
+      method: "GET",
+    });
+  }
+
+  async updateDocumentStatus(documentId: string, newStatus: string): Promise<any> {
+    const endpoint = `/core/documents/${documentId}/update-status/`;
+    return this.request(endpoint, {
+      method: "POST",
+      body: JSON.stringify({ status: newStatus }),
+    });
+  }
+
+  async addDocumentComment(documentId: string, comment: string): Promise<any> {
+    const endpoint = "/core/document-comments/create/";
+    return this.request(endpoint, {
+      method: "POST",
+      body: JSON.stringify({ comment, document: documentId }),
+    });
+  }
+
 }
 
 export const apiClient = new ApiClient(API_BASE_URL)
